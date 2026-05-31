@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Search, Pencil, Trash2, Plus, Check, X } from 'lucide-react';
 
 const API = 'http://localhost:3001/api';
 
@@ -35,7 +36,7 @@ function Modal({ memo, onClose }: { memo: Memo; onClose: () => void }) {
         <h2 style={{ margin: 0 }}>{memo.title}</h2>
         <div style={{ fontSize: 12, color: '#888' }}>{formatDate(memo.created_at)}</div>
         <div style={{ overflowY: 'auto', whiteSpace: 'pre-wrap', flex: 1, lineHeight: 1.7 }}>{memo.content}</div>
-        <button onClick={onClose} style={{ alignSelf: 'flex-end', padding: '6px 20px' }}>閉じる</button>
+        <button onClick={onClose} title="閉じる" style={{ alignSelf: 'flex-end', padding: '6px 14px', display: 'flex', alignItems: 'center' }}><X size={18} /></button>
       </div>
     </div>
   );
@@ -100,15 +101,16 @@ function App() {
           rows={6}
           style={{ display: 'block', width: '100%', marginBottom: 10, padding: '10px 12px', fontSize: 15, boxSizing: 'border-box', borderRadius: 6, border: '1px solid #ccc', resize: 'vertical' }}
         />
-        <button onClick={handleSubmit} style={{ padding: '8px 24px', fontSize: 15 }}>
-          {editingId ? '更新' : '追加'}
+        <button onClick={handleSubmit} title={editingId ? 'メモを更新する' : 'メモを追加する'} style={{ padding: '8px 16px', display: 'inline-flex', alignItems: 'center' }}>
+          {editingId ? <Check size={18} /> : <Plus size={18} />}
         </button>
         {editingId && (
           <button
             onClick={() => { setEditingId(null); setTitle(''); setContent(''); }}
-            style={{ marginLeft: 10, padding: '8px 24px', fontSize: 15 }}
+            title="編集をキャンセルする"
+            style={{ marginLeft: 10, padding: '8px 16px', display: 'inline-flex', alignItems: 'center' }}
           >
-            キャンセル
+            <X size={18} />
           </button>
         )}
       </div>
@@ -144,9 +146,9 @@ function App() {
               </p>
             </div>
             <div style={{ display: 'flex', gap: 6, marginTop: 10, flexShrink: 0 }}>
-              <button onClick={() => setDetailMemo(memo)} style={{ flex: 1, padding: '5px 0', fontSize: 12 }}>詳細</button>
-              <button onClick={() => handleEdit(memo)} style={{ flex: 1, padding: '5px 0', fontSize: 12 }}>編集</button>
-              <button onClick={() => handleDelete(memo.id)} style={{ flex: 1, padding: '5px 0', fontSize: 12 }}>削除</button>
+              <button onClick={() => setDetailMemo(memo)} title="詳細を表示する" style={{ flex: 1, padding: '5px 0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><Search size={16} /></button>
+              <button onClick={() => handleEdit(memo)} title="編集する" style={{ flex: 1, padding: '5px 0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><Pencil size={16} /></button>
+              <button onClick={() => handleDelete(memo.id)} title="削除する" style={{ flex: 1, padding: '5px 0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><Trash2 size={16} /></button>
             </div>
           </div>
         ))}
