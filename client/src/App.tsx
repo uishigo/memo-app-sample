@@ -147,19 +147,37 @@ function App() {
         borderRadius: 14, padding: 24, marginBottom: 32,
         boxShadow: colors.shadow,
       }}>
-        <input
-          placeholder="タイトル"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          style={inputStyle}
-        />
-        <textarea
-          placeholder="内容"
-          value={content}
-          onChange={e => setContent(e.target.value)}
-          rows={5}
-          style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.7 }}
-        />
+        <div style={{ position: 'relative', marginBottom: inputStyle.marginBottom }}>
+          <input
+            placeholder="タイトル"
+            value={title}
+            onChange={e => setTitle(e.target.value.slice(0, 50))}
+            maxLength={50}
+            style={{ ...inputStyle, marginBottom: 0 }}
+          />
+          <span style={{
+            position: 'absolute', right: 10, bottom: 8, fontSize: 11,
+            color: title.length >= 45 ? (title.length >= 50 ? '#e53e3e' : '#d97706') : colors.dateText,
+          }}>
+            {title.length}/50
+          </span>
+        </div>
+        <div style={{ position: 'relative', marginBottom: inputStyle.marginBottom }}>
+          <textarea
+            placeholder="内容"
+            value={content}
+            onChange={e => setContent(e.target.value.slice(0, 500))}
+            maxLength={500}
+            rows={5}
+            style={{ ...inputStyle, marginBottom: 0, resize: 'vertical', lineHeight: 1.7 }}
+          />
+          <span style={{
+            position: 'absolute', right: 10, bottom: 8, fontSize: 11,
+            color: content.length >= 450 ? (content.length >= 500 ? '#e53e3e' : '#d97706') : colors.dateText,
+          }}>
+            {content.length}/500
+          </span>
+        </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button
             onClick={handleSubmit}
