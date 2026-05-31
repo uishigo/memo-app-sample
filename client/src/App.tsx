@@ -10,6 +10,7 @@ interface Memo {
   title: string;
   content: string;
   created_at: string;
+  updated_at?: string;
 }
 
 function formatDate(dateStr: string) {
@@ -38,7 +39,12 @@ function Modal({ memo, onClose, colors }: { memo: Memo; onClose: () => void; col
         }}
       >
         <h2 style={{ margin: 0, color: colors.headerText, wordBreak: 'break-word', overflowWrap: 'break-word' }}>{memo.title}</h2>
-        <div style={{ fontSize: 12, color: colors.dateText }}>{formatDate(memo.created_at)}</div>
+        <div style={{ fontSize: 12, color: colors.dateText, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span>作成: {formatDate(memo.created_at)}</span>
+          {memo.updated_at && memo.updated_at !== memo.created_at && (
+            <span>更新: {formatDate(memo.updated_at)}</span>
+          )}
+        </div>
         <div style={{ overflowY: 'auto', whiteSpace: 'pre-wrap', overflowWrap: 'break-word', flex: 1, lineHeight: 1.8, color: colors.bodyText }}>{memo.content}</div>
         <button
           onClick={onClose}
@@ -234,7 +240,12 @@ function App() {
               }}>
                 {memo.title}
               </h3>
-              <div style={{ fontSize: 11, color: colors.dateText, marginBottom: 8 }}>{formatDate(memo.created_at)}</div>
+              <div style={{ fontSize: 11, color: colors.dateText, marginBottom: 8, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <span>作成: {formatDate(memo.created_at)}</span>
+                {memo.updated_at && memo.updated_at !== memo.created_at && (
+                  <span>更新: {formatDate(memo.updated_at)}</span>
+                )}
+              </div>
               <p style={{
                 margin: 0, fontSize: 13, color: colors.bodyText,
                 overflow: 'hidden', display: '-webkit-box',

@@ -46,7 +46,7 @@ app.put('/api/memos/:id', async (req, res) => {
   const { title, content } = req.body;
   const { data, error } = await supabase
     .from('memos')
-    .update({ title, content })
+    .update({ title, content, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select();
   if (error) return res.status(500).json({ error: error.message });
