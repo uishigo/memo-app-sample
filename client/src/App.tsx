@@ -1,84 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import { useState, useRef } from 'react';
 import { Search, Pencil, Trash2, Plus, Check, X, ImagePlus } from 'lucide-react';
-import { themes, themeList, getInputStyle, type ThemeColors, type ThemeName } from './styles';
-
-const API = 'http://localhost:3001/api';
-
-interface Memo {
-  id: number;
-  title: string;
-  content: string;
-  image_url?: string | null;
-  created_at: string;
-  updated_at?: string;
-}
-
-function formatDate(dateStr: string) {
-  const d = new Date(dateStr);
-  return d.toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
-}
-
-function Modal({ memo, onClose, colors }: { memo: Memo; onClose: () => void; colors: ThemeColors }) {
-  return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, background: colors.modalOverlay,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: colors.modalBg,
-          border: `1px solid ${colors.cardBorder}`,
-          borderRadius: 16, padding: 32,
-          width: '90%', maxWidth: 700, maxHeight: '80vh',
-          display: 'flex', flexDirection: 'column', gap: 12,
-          boxShadow: colors.modalShadow,
-        }}
-      >
-        <h2 style={{ margin: 0, color: colors.headerText, wordBreak: 'break-word', overflowWrap: 'break-word' }}>{memo.title}</h2>
-        <div style={{ fontSize: 12, color: colors.dateText, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <span>作成: {formatDate(memo.created_at)}</span>
-          {memo.updated_at && memo.updated_at !== memo.created_at && (
-            <span>更新: {formatDate(memo.updated_at)}</span>
-          )}
-        </div>
-        <div style={{ overflowY: 'auto', whiteSpace: 'pre-wrap', overflowWrap: 'break-word', lineHeight: 1.8, color: colors.bodyText }}>
-          {memo.content}
-        </div>
-        {memo.image_url && (
-          <img
-            src={memo.image_url}
-            alt="添付画像"
-            style={{
-              width: '100%', maxHeight: 320, objectFit: 'contain',
-              borderRadius: 8, border: `1px solid ${colors.cardBorder}`,
-            }}
-          />
-        )}
-        <button
-          onClick={onClose}
-          title="閉じる"
-          style={{
-            alignSelf: 'flex-end', padding: '6px 16px',
-            display: 'flex', alignItems: 'center', gap: 4,
-            background: colors.btnSecondary, color: colors.btnSecondaryText,
-            border: `1px solid ${colors.cardBorder}`, borderRadius: 8,
-            cursor: 'pointer', fontWeight: 600, fontSize: 13,
-          }}
-        >
-          <X size={16} /> 閉じる
-        </button>
-      </div>
-    </div>
-  );
-}
+import { themes, themeList, getInputStyle, type ThemeName } from './styles';
+import { formatDate, type Memo } from './types';
+import { Modal } from './components/Modal';
+import { useMemos } from './hooks/useMemos';
 
 function App() {
-  const [memos, setMemos] = useState<Memo[]>([]);
+  const { memos, addMemo, updateMemo, deleteMemo, uploadImage } = useMemos();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -97,15 +25,6 @@ function App() {
   const handleThemeChange = (t: ThemeName) => {
     setTheme(t);
     localStorage.setItem('memo-theme', t);
-  };
-
-  useEffect(() => {
-    axios.get<Memo[]>(`${API}/memos`).then(res => setMemos(res.data));
-  }, []);
-
-  const fetchMemos = async () => {
-    const res = await axios.get<Memo[]>(`${API}/memos`);
-    setMemos(res.data);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -135,19 +54,15 @@ function App() {
 
     let image_url: string | null = imageFile ? null : imagePreview;
     if (imageFile) {
-      const formData = new FormData();
-      formData.append('image', imageFile);
-      const res = await axios.post<{ url: string }>(`${API}/upload`, formData);
-      image_url = res.data.url;
+      image_url = await uploadImage(imageFile);
     }
 
     if (editingId) {
-      await axios.put(`${API}/memos/${editingId}`, { title, content, image_url });
+      await updateMemo(editingId, title, content, image_url);
     } else {
-      await axios.post(`${API}/memos`, { title, content, image_url });
+      await addMemo(title, content, image_url);
     }
     resetForm();
-    fetchMemos();
   };
 
   const handleEdit = (memo: Memo) => {
@@ -161,8 +76,7 @@ function App() {
 
   const handleDelete = async (id: number) => {
     if (!window.confirm('このメモを削除しますか？')) return;
-    await axios.delete(`${API}/memos/${id}`);
-    fetchMemos();
+    await deleteMemo(id);
   };
 
   return (
@@ -233,7 +147,6 @@ function App() {
           </span>
         </div>
 
-        {/* 画像選択エリア */}
         <div style={{ marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <label style={{
