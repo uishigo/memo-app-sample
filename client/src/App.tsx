@@ -4,6 +4,25 @@ import { Search, Pencil, Trash2, Plus, Check, X } from 'lucide-react';
 
 const API = 'http://localhost:3001/api';
 
+const colors = {
+  pageBg: '#edf7f1',
+  cardBg: '#f7fdf9',
+  cardBorder: '#b2ddc0',
+  inputBorder: '#a8d5b5',
+  btnPrimary: '#5aaa78',
+  btnPrimaryHover: '#4a9268',
+  btnSecondary: '#c3e8cf',
+  btnSecondaryText: '#2e6e4a',
+  btnDanger: '#e8c3c3',
+  btnDangerText: '#8b3a3a',
+  headerText: '#2a5e40',
+  dateText: '#7aab8e',
+  bodyText: '#3d5a47',
+  modalOverlay: 'rgba(42, 94, 64, 0.4)',
+  modalBg: '#f4fcf7',
+  shadow: '0 2px 8px rgba(90, 170, 120, 0.12)',
+};
+
 interface Memo {
   id: number;
   title: string;
@@ -21,22 +40,37 @@ function Modal({ memo, onClose }: { memo: Memo; onClose: () => void }) {
     <div
       onClick={onClose}
       style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+        position: 'fixed', inset: 0, background: colors.modalOverlay,
         display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
       }}
     >
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: '#fff', borderRadius: 12, padding: 32,
+          background: colors.modalBg,
+          border: `1px solid ${colors.cardBorder}`,
+          borderRadius: 16, padding: 32,
           width: '90%', maxWidth: 700, maxHeight: '80vh',
           display: 'flex', flexDirection: 'column', gap: 12,
+          boxShadow: '0 8px 32px rgba(90, 170, 120, 0.2)',
         }}
       >
-        <h2 style={{ margin: 0 }}>{memo.title}</h2>
-        <div style={{ fontSize: 12, color: '#888' }}>{formatDate(memo.created_at)}</div>
-        <div style={{ overflowY: 'auto', whiteSpace: 'pre-wrap', flex: 1, lineHeight: 1.7 }}>{memo.content}</div>
-        <button onClick={onClose} title="閉じる" style={{ alignSelf: 'flex-end', padding: '6px 14px', display: 'flex', alignItems: 'center' }}><X size={18} /></button>
+        <h2 style={{ margin: 0, color: colors.headerText }}>{memo.title}</h2>
+        <div style={{ fontSize: 12, color: colors.dateText }}>{formatDate(memo.created_at)}</div>
+        <div style={{ overflowY: 'auto', whiteSpace: 'pre-wrap', flex: 1, lineHeight: 1.8, color: colors.bodyText }}>{memo.content}</div>
+        <button
+          onClick={onClose}
+          title="閉じる"
+          style={{
+            alignSelf: 'flex-end', padding: '6px 16px',
+            display: 'flex', alignItems: 'center', gap: 4,
+            background: colors.btnSecondary, color: colors.btnSecondaryText,
+            border: `1px solid ${colors.cardBorder}`, borderRadius: 8,
+            cursor: 'pointer', fontWeight: 600, fontSize: 13,
+          }}
+        >
+          <X size={16} /> 閉じる
+        </button>
       </div>
     </div>
   );
@@ -83,36 +117,68 @@ function App() {
     fetchMemos();
   };
 
-  return (
-    <div style={{ padding: '40px 24px', fontFamily: 'sans-serif' }}>
-      <h1>📝 メモ帳</h1>
+  const inputStyle = {
+    display: 'block', width: '100%', marginBottom: 10,
+    padding: '10px 14px', fontSize: 15,
+    boxSizing: 'border-box' as const,
+    borderRadius: 8, border: `1px solid ${colors.inputBorder}`,
+    background: '#fff', color: colors.bodyText,
+    outline: 'none',
+  };
 
-      <div style={{ marginBottom: 32 }}>
+  return (
+    <div style={{ minHeight: '100vh', background: colors.pageBg, padding: '40px 24px', fontFamily: 'sans-serif' }}>
+      <h1 style={{ color: colors.headerText, marginBottom: 8, fontSize: 26, fontWeight: 700, letterSpacing: 1 }}>
+        🌿 メモ帳
+      </h1>
+      <p style={{ color: colors.dateText, marginBottom: 28, marginTop: 0, fontSize: 13 }}>あなたのメモを管理しましょう</p>
+
+      <div style={{
+        background: colors.cardBg, border: `1px solid ${colors.cardBorder}`,
+        borderRadius: 14, padding: 24, marginBottom: 32,
+        boxShadow: colors.shadow,
+      }}>
         <input
           placeholder="タイトル"
           value={title}
           onChange={e => setTitle(e.target.value)}
-          style={{ display: 'block', width: '100%', marginBottom: 10, padding: '10px 12px', fontSize: 16, boxSizing: 'border-box', borderRadius: 6, border: '1px solid #ccc' }}
+          style={inputStyle}
         />
         <textarea
           placeholder="内容"
           value={content}
           onChange={e => setContent(e.target.value)}
-          rows={6}
-          style={{ display: 'block', width: '100%', marginBottom: 10, padding: '10px 12px', fontSize: 15, boxSizing: 'border-box', borderRadius: 6, border: '1px solid #ccc', resize: 'vertical' }}
+          rows={5}
+          style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.7 }}
         />
-        <button onClick={handleSubmit} title={editingId ? 'メモを更新する' : 'メモを追加する'} style={{ padding: '8px 16px', display: 'inline-flex', alignItems: 'center' }}>
-          {editingId ? <Check size={18} /> : <Plus size={18} />}
-        </button>
-        {editingId && (
+        <div style={{ display: 'flex', gap: 8 }}>
           <button
-            onClick={() => { setEditingId(null); setTitle(''); setContent(''); }}
-            title="編集をキャンセルする"
-            style={{ marginLeft: 10, padding: '8px 16px', display: 'inline-flex', alignItems: 'center' }}
+            onClick={handleSubmit}
+            title={editingId ? 'メモを更新する' : 'メモを追加する'}
+            style={{
+              padding: '8px 20px', display: 'inline-flex', alignItems: 'center', gap: 6,
+              background: colors.btnPrimary, color: '#fff',
+              border: 'none', borderRadius: 8, cursor: 'pointer',
+              fontWeight: 600, fontSize: 14,
+            }}
           >
-            <X size={18} />
+            {editingId ? <><Check size={16} /> 更新</> : <><Plus size={16} /> 追加</>}
           </button>
-        )}
+          {editingId && (
+            <button
+              onClick={() => { setEditingId(null); setTitle(''); setContent(''); }}
+              title="編集をキャンセルする"
+              style={{
+                padding: '8px 18px', display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: colors.btnSecondary, color: colors.btnSecondaryText,
+                border: `1px solid ${colors.cardBorder}`, borderRadius: 8,
+                cursor: 'pointer', fontWeight: 600, fontSize: 14,
+              }}
+            >
+              <X size={16} /> キャンセル
+            </button>
+          )}
+        </div>
       </div>
 
       <div style={{
@@ -124,31 +190,67 @@ function App() {
           <div
             key={memo.id}
             style={{
-              border: '1px solid #ddd', borderRadius: 10, padding: 16,
-              height: 180, boxSizing: 'border-box',
+              border: `1px solid ${colors.cardBorder}`,
+              borderRadius: 12, padding: 16,
+              height: 190, boxSizing: 'border-box',
               display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-              background: '#fafafa',
+              background: colors.cardBg,
+              boxShadow: colors.shadow,
               overflow: 'hidden',
             }}
           >
             <div style={{ overflow: 'hidden', flex: 1 }}>
-              <h3 style={{ margin: '0 0 4px', fontSize: 15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <h3 style={{
+                margin: '0 0 4px', fontSize: 15, fontWeight: 700,
+                color: colors.headerText,
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+              }}>
                 {memo.title}
               </h3>
-              <div style={{ fontSize: 11, color: '#999', marginBottom: 6 }}>{formatDate(memo.created_at)}</div>
+              <div style={{ fontSize: 11, color: colors.dateText, marginBottom: 8 }}>{formatDate(memo.created_at)}</div>
               <p style={{
-                margin: 0, fontSize: 13, color: '#444',
+                margin: 0, fontSize: 13, color: colors.bodyText,
                 overflow: 'hidden', display: '-webkit-box',
                 WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
-                whiteSpace: 'pre-wrap',
+                whiteSpace: 'pre-wrap', lineHeight: 1.6,
               }}>
                 {memo.content}
               </p>
             </div>
             <div style={{ display: 'flex', gap: 6, marginTop: 10, flexShrink: 0 }}>
-              <button onClick={() => setDetailMemo(memo)} title="詳細を表示する" style={{ flex: 1, padding: '5px 0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><Search size={16} /></button>
-              <button onClick={() => handleEdit(memo)} title="編集する" style={{ flex: 1, padding: '5px 0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><Pencil size={16} /></button>
-              <button onClick={() => handleDelete(memo.id)} title="削除する" style={{ flex: 1, padding: '5px 0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><Trash2 size={16} /></button>
+              <button
+                onClick={() => setDetailMemo(memo)}
+                title="詳細を表示する"
+                style={{
+                  flex: 1, padding: '5px 0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  background: colors.btnSecondary, color: colors.btnSecondaryText,
+                  border: `1px solid ${colors.cardBorder}`, borderRadius: 6, cursor: 'pointer',
+                }}
+              >
+                <Search size={15} />
+              </button>
+              <button
+                onClick={() => handleEdit(memo)}
+                title="編集する"
+                style={{
+                  flex: 1, padding: '5px 0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  background: colors.btnSecondary, color: colors.btnSecondaryText,
+                  border: `1px solid ${colors.cardBorder}`, borderRadius: 6, cursor: 'pointer',
+                }}
+              >
+                <Pencil size={15} />
+              </button>
+              <button
+                onClick={() => handleDelete(memo.id)}
+                title="削除する"
+                style={{
+                  flex: 1, padding: '5px 0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  background: colors.btnDanger, color: colors.btnDangerText,
+                  border: '1px solid #e0b0b0', borderRadius: 6, cursor: 'pointer',
+                }}
+              >
+                <Trash2 size={15} />
+              </button>
             </div>
           </div>
         ))}
