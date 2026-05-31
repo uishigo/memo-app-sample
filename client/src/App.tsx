@@ -37,9 +37,9 @@ function Modal({ memo, onClose, colors }: { memo: Memo; onClose: () => void; col
           boxShadow: colors.modalShadow,
         }}
       >
-        <h2 style={{ margin: 0, color: colors.headerText }}>{memo.title}</h2>
+        <h2 style={{ margin: 0, color: colors.headerText, wordBreak: 'break-word', overflowWrap: 'break-word' }}>{memo.title}</h2>
         <div style={{ fontSize: 12, color: colors.dateText }}>{formatDate(memo.created_at)}</div>
-        <div style={{ overflowY: 'auto', whiteSpace: 'pre-wrap', flex: 1, lineHeight: 1.8, color: colors.bodyText }}>{memo.content}</div>
+        <div style={{ overflowY: 'auto', whiteSpace: 'pre-wrap', overflowWrap: 'break-word', flex: 1, lineHeight: 1.8, color: colors.bodyText }}>{memo.content}</div>
         <button
           onClick={onClose}
           title="閉じる"
