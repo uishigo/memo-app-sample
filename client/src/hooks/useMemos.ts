@@ -12,6 +12,7 @@ export function useMemos() {
     setMemos(res.data);
   };
 
+  // fetchMemos を依存配列に入れないため、初回取得は直接記述
   useEffect(() => {
     axios.get<Memo[]>(`${API}/memos`).then(res => setMemos(res.data));
   }, []);
@@ -33,6 +34,7 @@ export function useMemos() {
 
   const uploadImage = async (file: File): Promise<string> => {
     const formData = new FormData();
+    // キー名 'image' はサーバーの upload.single('image') と一致させる必要がある
     formData.append('image', file);
     const res = await axios.post<{ url: string }>(`${API}/upload`, formData);
     return res.data.url;

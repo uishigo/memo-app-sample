@@ -39,6 +39,8 @@ async function deleteStorageFile(imageUrl) {
     const marker = '/memo-images/';
     const idx = pathname.indexOf(marker);
     if (idx === -1) return;
+    // SupabaseのパブリックURLからバケット以下のパスを抽出する
+    // ファイル名に特殊文字が含まれる場合に備えてdecodeURIComponentを使用
     const filePath = decodeURIComponent(pathname.slice(idx + marker.length));
     const { error } = await supabaseAdmin.storage.from('memo-images').remove([filePath]);
     if (error) console.error('Storage deletion failed:', error.message);
@@ -89,6 +91,7 @@ app.put('/api/memos/:id', async (req, res) => {
   const { data: existing } = await supabase
     .from('memos').select('image_url').eq('id', id).single();
 
+  // 画像URLが変わった場合（差し替えまたは削除）のみ古いファイルをStorageから除去
   if (existing?.image_url && existing.image_url !== image_url) {
     await deleteStorageFile(existing.image_url);
   }
@@ -106,6 +109,7 @@ app.put('/api/memos/:id', async (req, res) => {
 app.delete('/api/memos/:id', async (req, res) => {
   const { id } = req.params;
 
+  // DBレコード削除前にimage_urlを取得する — 削除後は参照できなくなるため
   const { data: existing } = await supabase
     .from('memos').select('image_url').eq('id', id).single();
 

@@ -52,6 +52,8 @@ function App() {
   const handleSubmit = async () => {
     if (!title.trim()) return;
 
+    // 新規ファイルがあればnullで初期化しアップロード後に上書き
+    // ファイルがなければimagePreview（既存URL or null）をそのまま送る
     let image_url: string | null = imageFile ? null : imagePreview;
     if (imageFile) {
       image_url = await uploadImage(imageFile);
@@ -69,6 +71,7 @@ function App() {
     setEditingId(memo.id);
     setTitle(memo.title);
     setContent(memo.content);
+    // 編集開始時はimageFileをnullにリセット — 既存画像はimagePreviewのURLで保持
     setImageFile(null);
     setImagePreview(memo.image_url || null);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -258,6 +261,7 @@ function App() {
                 <p style={{
                   margin: 0, fontSize: 13, color: colors.bodyText,
                   overflow: 'hidden', display: '-webkit-box',
+                  // 画像がある場合は2行、ない場合は3行でテキストを省略
                   WebkitLineClamp: memo.image_url ? 2 : 3, WebkitBoxOrient: 'vertical',
                   whiteSpace: 'pre-wrap', lineHeight: 1.6,
                 }}>

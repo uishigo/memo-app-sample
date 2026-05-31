@@ -12,6 +12,7 @@ export function Modal({ memo, onClose, colors }: { memo: Memo; onClose: () => vo
         display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
       }}
     >
+      {/* stopPropagation でオーバーレイのonCloseへイベントが伝播するのを防ぐ */}
       <div
         onClick={e => e.stopPropagation()}
         style={{
