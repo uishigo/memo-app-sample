@@ -4,10 +4,19 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const express = require('express');
 const cors = require('cors');
+const multer = require('multer');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) cb(null, true);
+    else cb(new Error('Images only'));
+  },
+});
 
 app.use(cors());
 app.use(express.json());
@@ -18,6 +27,38 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_KEY
 );
+// Storage削除はRLSをバイパスするためservice_role keyを使用
+const supabaseAdmin = process.env.SUPABASE_SERVICE_KEY
+  ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY)
+  : supabase;
+
+async function deleteStorageFile(imageUrl) {
+  if (!imageUrl) return;
+  try {
+    const pathname = new URL(imageUrl).pathname;
+    const marker = '/memo-images/';
+    const idx = pathname.indexOf(marker);
+    if (idx === -1) return;
+    const filePath = decodeURIComponent(pathname.slice(idx + marker.length));
+    const { error } = await supabaseAdmin.storage.from('memo-images').remove([filePath]);
+    if (error) console.error('Storage deletion failed:', error.message);
+  } catch (e) {
+    console.error('Storage deletion error:', e);
+  }
+}
+
+// 画像アップロード
+app.post('/api/upload', upload.single('image'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file provided' });
+  const ext = (req.file.originalname.split('.').pop() || 'jpg').toLowerCase();
+  const fileName = `${Date.now()}.${ext}`;
+  const { error } = await supabase.storage
+    .from('memo-images')
+    .upload(fileName, req.file.buffer, { contentType: req.file.mimetype });
+  if (error) return res.status(500).json({ error: error.message });
+  const { data } = supabase.storage.from('memo-images').getPublicUrl(fileName);
+  res.json({ url: data.publicUrl });
+});
 
 // メモ一覧の取得
 app.get('/api/memos', async (req, res) => {
@@ -31,10 +72,10 @@ app.get('/api/memos', async (req, res) => {
 
 // メモの作成
 app.post('/api/memos', async (req, res) => {
-  const { title, content } = req.body;
+  const { title, content, image_url } = req.body;
   const { data, error } = await supabase
     .from('memos')
-    .insert([{ title, content }])
+    .insert([{ title, content, image_url: image_url || null }])
     .select();
   if (error) return res.status(500).json({ error: error.message });
   res.status(201).json(data[0]);
@@ -43,10 +84,18 @@ app.post('/api/memos', async (req, res) => {
 // メモの更新
 app.put('/api/memos/:id', async (req, res) => {
   const { id } = req.params;
-  const { title, content } = req.body;
+  const { title, content, image_url } = req.body;
+
+  const { data: existing } = await supabase
+    .from('memos').select('image_url').eq('id', id).single();
+
+  if (existing?.image_url && existing.image_url !== image_url) {
+    await deleteStorageFile(existing.image_url);
+  }
+
   const { data, error } = await supabase
     .from('memos')
-    .update({ title, content, updated_at: new Date().toISOString() })
+    .update({ title, content, image_url: image_url ?? null, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select();
   if (error) return res.status(500).json({ error: error.message });
@@ -56,11 +105,20 @@ app.put('/api/memos/:id', async (req, res) => {
 // メモの削除
 app.delete('/api/memos/:id', async (req, res) => {
   const { id } = req.params;
+
+  const { data: existing } = await supabase
+    .from('memos').select('image_url').eq('id', id).single();
+
   const { error } = await supabase
     .from('memos')
     .delete()
     .eq('id', id);
   if (error) return res.status(500).json({ error: error.message });
+
+  if (existing?.image_url) {
+    await deleteStorageFile(existing.image_url);
+  }
+
   res.status(204).send();
 });
 

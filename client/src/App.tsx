@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { Search, Pencil, Trash2, Plus, Check, X } from 'lucide-react';
+import { Search, Pencil, Trash2, Plus, Check, X, ImagePlus } from 'lucide-react';
 import { themes, themeList, getInputStyle, type ThemeColors, type ThemeName } from './styles';
 
 const API = 'http://localhost:3001/api';
@@ -9,6 +9,7 @@ interface Memo {
   id: number;
   title: string;
   content: string;
+  image_url?: string | null;
   created_at: string;
   updated_at?: string;
 }
@@ -45,7 +46,19 @@ function Modal({ memo, onClose, colors }: { memo: Memo; onClose: () => void; col
             <span>更新: {formatDate(memo.updated_at)}</span>
           )}
         </div>
-        <div style={{ overflowY: 'auto', whiteSpace: 'pre-wrap', overflowWrap: 'break-word', flex: 1, lineHeight: 1.8, color: colors.bodyText }}>{memo.content}</div>
+        <div style={{ overflowY: 'auto', whiteSpace: 'pre-wrap', overflowWrap: 'break-word', lineHeight: 1.8, color: colors.bodyText }}>
+          {memo.content}
+        </div>
+        {memo.image_url && (
+          <img
+            src={memo.image_url}
+            alt="添付画像"
+            style={{
+              width: '100%', maxHeight: 320, objectFit: 'contain',
+              borderRadius: 8, border: `1px solid ${colors.cardBorder}`,
+            }}
+          />
+        )}
         <button
           onClick={onClose}
           title="閉じる"
@@ -68,11 +81,14 @@ function App() {
   const [memos, setMemos] = useState<Memo[]>([]);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [detailMemo, setDetailMemo] = useState<Memo | null>(null);
   const [theme, setTheme] = useState<ThemeName>(
     () => (localStorage.getItem('memo-theme') as ThemeName) || 'green'
   );
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const colors = themes[theme];
   const inputStyle = getInputStyle(colors);
@@ -92,16 +108,45 @@ function App() {
     setMemos(res.data);
   };
 
-  const handleSubmit = async () => {
-    if (!title.trim()) return;
-    if (editingId) {
-      await axios.put(`${API}/memos/${editingId}`, { title, content });
-      setEditingId(null);
-    } else {
-      await axios.post(`${API}/memos`, { title, content });
-    }
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleImageRemove = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const resetForm = () => {
     setTitle('');
     setContent('');
+    setImageFile(null);
+    setImagePreview(null);
+    setEditingId(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleSubmit = async () => {
+    if (!title.trim()) return;
+
+    let image_url: string | null = imageFile ? null : imagePreview;
+    if (imageFile) {
+      const formData = new FormData();
+      formData.append('image', imageFile);
+      const res = await axios.post<{ url: string }>(`${API}/upload`, formData);
+      image_url = res.data.url;
+    }
+
+    if (editingId) {
+      await axios.put(`${API}/memos/${editingId}`, { title, content, image_url });
+    } else {
+      await axios.post(`${API}/memos`, { title, content, image_url });
+    }
+    resetForm();
     fetchMemos();
   };
 
@@ -109,6 +154,9 @@ function App() {
     setEditingId(memo.id);
     setTitle(memo.title);
     setContent(memo.content);
+    setImageFile(null);
+    setImagePreview(memo.image_url || null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleDelete = async (id: number) => {
@@ -184,6 +232,53 @@ function App() {
             {content.length}/500
           </span>
         </div>
+
+        {/* 画像選択エリア */}
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <label style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '6px 14px', borderRadius: 8,
+              background: colors.btnSecondary, color: colors.btnSecondaryText,
+              border: `1px solid ${colors.cardBorder}`, cursor: 'pointer',
+              fontSize: 13, fontWeight: 600,
+            }}>
+              <ImagePlus size={15} /> 画像を選択
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleImageChange}
+              />
+            </label>
+            {imagePreview && (
+              <>
+                <img
+                  src={imagePreview}
+                  alt="プレビュー"
+                  style={{
+                    width: 64, height: 64, objectFit: 'cover',
+                    borderRadius: 8, border: `1px solid ${colors.cardBorder}`,
+                  }}
+                />
+                <button
+                  onClick={handleImageRemove}
+                  title="画像を削除"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                    padding: '4px 10px', fontSize: 12, fontWeight: 600,
+                    background: colors.btnDanger, color: colors.btnDangerText,
+                    border: `1px solid ${colors.cardBorder}`, borderRadius: 6, cursor: 'pointer',
+                  }}
+                >
+                  <X size={13} /> 削除
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
         <div style={{ display: 'flex', gap: 8 }}>
           <button
             onClick={handleSubmit}
@@ -199,7 +294,7 @@ function App() {
           </button>
           {editingId && (
             <button
-              onClick={() => { setEditingId(null); setTitle(''); setContent(''); }}
+              onClick={resetForm}
               title="編集をキャンセルする"
               style={{
                 padding: '8px 18px', display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -232,28 +327,41 @@ function App() {
               overflow: 'hidden',
             }}
           >
-            <div style={{ overflow: 'hidden', flex: 1 }}>
-              <h3 style={{
-                margin: '0 0 4px', fontSize: 15, fontWeight: 700,
-                color: colors.headerText,
-                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-              }}>
-                {memo.title}
-              </h3>
-              <div style={{ fontSize: 11, color: colors.dateText, marginBottom: 8, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <span>作成: {formatDate(memo.created_at)}</span>
-                {memo.updated_at && memo.updated_at !== memo.created_at && (
-                  <span>更新: {formatDate(memo.updated_at)}</span>
-                )}
+            <div style={{ overflow: 'hidden', flex: 1, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+              <div style={{ flex: 1, overflow: 'hidden', minWidth: 0 }}>
+                <h3 style={{
+                  margin: '0 0 4px', fontSize: 15, fontWeight: 700,
+                  color: colors.headerText,
+                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                }}>
+                  {memo.title}
+                </h3>
+                <div style={{ fontSize: 11, color: colors.dateText, marginBottom: 8, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <span>作成: {formatDate(memo.created_at)}</span>
+                  {memo.updated_at && memo.updated_at !== memo.created_at && (
+                    <span>更新: {formatDate(memo.updated_at)}</span>
+                  )}
+                </div>
+                <p style={{
+                  margin: 0, fontSize: 13, color: colors.bodyText,
+                  overflow: 'hidden', display: '-webkit-box',
+                  WebkitLineClamp: memo.image_url ? 2 : 3, WebkitBoxOrient: 'vertical',
+                  whiteSpace: 'pre-wrap', lineHeight: 1.6,
+                }}>
+                  {memo.content}
+                </p>
               </div>
-              <p style={{
-                margin: 0, fontSize: 13, color: colors.bodyText,
-                overflow: 'hidden', display: '-webkit-box',
-                WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
-                whiteSpace: 'pre-wrap', lineHeight: 1.6,
-              }}>
-                {memo.content}
-              </p>
+              {memo.image_url && (
+                <img
+                  src={memo.image_url}
+                  alt="添付画像"
+                  style={{
+                    width: 64, height: 64, objectFit: 'cover',
+                    borderRadius: 6, border: `1px solid ${colors.cardBorder}`,
+                    flexShrink: 0,
+                  }}
+                />
+              )}
             </div>
             <div style={{ display: 'flex', gap: 6, marginTop: 10, flexShrink: 0 }}>
               <button
