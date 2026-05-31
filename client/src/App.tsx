@@ -1,27 +1,9 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Search, Pencil, Trash2, Plus, Check, X } from 'lucide-react';
+import { themes, themeList, getInputStyle, type ThemeColors, type ThemeName } from './styles';
 
 const API = 'http://localhost:3001/api';
-
-const colors = {
-  pageBg: '#edf7f1',
-  cardBg: '#f7fdf9',
-  cardBorder: '#b2ddc0',
-  inputBorder: '#a8d5b5',
-  btnPrimary: '#5aaa78',
-  btnPrimaryHover: '#4a9268',
-  btnSecondary: '#c3e8cf',
-  btnSecondaryText: '#2e6e4a',
-  btnDanger: '#e8c3c3',
-  btnDangerText: '#8b3a3a',
-  headerText: '#2a5e40',
-  dateText: '#7aab8e',
-  bodyText: '#3d5a47',
-  modalOverlay: 'rgba(42, 94, 64, 0.4)',
-  modalBg: '#f4fcf7',
-  shadow: '0 2px 8px rgba(90, 170, 120, 0.12)',
-};
 
 interface Memo {
   id: number;
@@ -35,7 +17,7 @@ function formatDate(dateStr: string) {
   return d.toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
-function Modal({ memo, onClose }: { memo: Memo; onClose: () => void }) {
+function Modal({ memo, onClose, colors }: { memo: Memo; onClose: () => void; colors: ThemeColors }) {
   return (
     <div
       onClick={onClose}
@@ -52,7 +34,7 @@ function Modal({ memo, onClose }: { memo: Memo; onClose: () => void }) {
           borderRadius: 16, padding: 32,
           width: '90%', maxWidth: 700, maxHeight: '80vh',
           display: 'flex', flexDirection: 'column', gap: 12,
-          boxShadow: '0 8px 32px rgba(90, 170, 120, 0.2)',
+          boxShadow: colors.modalShadow,
         }}
       >
         <h2 style={{ margin: 0, color: colors.headerText }}>{memo.title}</h2>
@@ -82,6 +64,18 @@ function App() {
   const [content, setContent] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [detailMemo, setDetailMemo] = useState<Memo | null>(null);
+  const [theme, setTheme] = useState<ThemeName>(
+    () => (localStorage.getItem('memo-theme') as ThemeName) || 'green'
+  );
+
+  const colors = themes[theme];
+  const inputStyle = getInputStyle(colors);
+  const activeThemeItem = themeList.find(t => t.key === theme)!;
+
+  const handleThemeChange = (t: ThemeName) => {
+    setTheme(t);
+    localStorage.setItem('memo-theme', t);
+  };
 
   useEffect(() => {
     axios.get<Memo[]>(`${API}/memos`).then(res => setMemos(res.data));
@@ -117,21 +111,36 @@ function App() {
     fetchMemos();
   };
 
-  const inputStyle = {
-    display: 'block', width: '100%', marginBottom: 10,
-    padding: '10px 14px', fontSize: 15,
-    boxSizing: 'border-box' as const,
-    borderRadius: 8, border: `1px solid ${colors.inputBorder}`,
-    background: '#fff', color: colors.bodyText,
-    outline: 'none',
-  };
-
   return (
     <div style={{ minHeight: '100vh', background: colors.pageBg, padding: '40px 24px', fontFamily: 'sans-serif' }}>
-      <h1 style={{ color: colors.headerText, marginBottom: 8, fontSize: 26, fontWeight: 700, letterSpacing: 1 }}>
-        🌿 メモ帳
-      </h1>
-      <p style={{ color: colors.dateText, marginBottom: 28, marginTop: 0, fontSize: 13 }}>あなたのメモを管理しましょう</p>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 8 }}>
+        <h1 style={{ color: colors.headerText, margin: 0, fontSize: 26, fontWeight: 700, letterSpacing: 1 }}>
+          {activeThemeItem.emoji} メモ帳
+        </h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 11, color: colors.dateText, marginRight: 2 }}>テーマ</span>
+          {themeList.map(t => (
+            <button
+              key={t.key}
+              title={t.label}
+              onClick={() => handleThemeChange(t.key)}
+              style={{
+                width: 22, height: 22, borderRadius: '50%',
+                background: themes[t.key].btnPrimary,
+                border: theme === t.key
+                  ? `2px solid ${colors.headerText}`
+                  : `2px solid transparent`,
+                outline: theme === t.key ? `2px solid ${colors.cardBorder}` : 'none',
+                outlineOffset: 1,
+                cursor: 'pointer', padding: 0,
+                transition: 'transform 0.1s',
+                transform: theme === t.key ? 'scale(1.25)' : 'scale(1)',
+              }}
+            />
+          ))}
+        </div>
+      </div>
+      <p style={{ color: colors.dateText, marginBottom: 28, marginTop: 4, fontSize: 13 }}>あなたのメモを管理しましょう</p>
 
       <div style={{
         background: colors.cardBg, border: `1px solid ${colors.cardBorder}`,
@@ -246,7 +255,7 @@ function App() {
                 style={{
                   flex: 1, padding: '5px 0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   background: colors.btnDanger, color: colors.btnDangerText,
-                  border: '1px solid #e0b0b0', borderRadius: 6, cursor: 'pointer',
+                  border: `1px solid ${colors.cardBorder}`, borderRadius: 6, cursor: 'pointer',
                 }}
               >
                 <Trash2 size={15} />
@@ -256,7 +265,7 @@ function App() {
         ))}
       </div>
 
-      {detailMemo && <Modal memo={detailMemo} onClose={() => setDetailMemo(null)} />}
+      {detailMemo && <Modal memo={detailMemo} onClose={() => setDetailMemo(null)} colors={colors} />}
     </div>
   );
 }
