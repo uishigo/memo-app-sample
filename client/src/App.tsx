@@ -77,6 +77,7 @@ function App() {
   };
 
   const handleDelete = async (id: number) => {
+    if (!window.confirm('このメモを削除しますか？')) return;
     await axios.delete(`${API}/memos/${id}`);
     fetchMemos();
   };
