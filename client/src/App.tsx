@@ -263,7 +263,7 @@ function App() {
             style={{
               border: `1px solid ${colors.cardBorder}`,
               borderRadius: 12, padding: 16,
-              height: 190, boxSizing: 'border-box',
+              height: 240, boxSizing: 'border-box',
               display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
               background: colors.cardBg,
               boxShadow: colors.shadow,
@@ -273,26 +273,27 @@ function App() {
             <div style={{ overflow: 'hidden', flex: 1, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
               <div style={{ flex: 1, overflow: 'hidden', minWidth: 0 }}>
                 <h3 style={{
-                  margin: '0 0 4px', fontSize: 15, fontWeight: 700,
+                  margin: '0 0 6px', fontSize: 15, fontWeight: 700,
                   color: colors.headerText,
                   whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  background: colors.pageBg,
+                  borderRadius: 6, padding: '3px 8px',
                 }}>
                   {memo.title}
                 </h3>
-                <div style={{ fontSize: 11, color: colors.dateText, marginBottom: 8, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  {memo.author && (
-                    <span style={{ color: colors.btnPrimary, fontWeight: 600 }}>👤 {memo.author}</span>
-                  )}
+                <div style={{ fontSize: 11, color: colors.dateText, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <span style={{ color: memo.author ? colors.btnPrimary : colors.dateText, fontWeight: memo.author ? 600 : 400 }}>
+                    👤 {memo.author || '-'}
+                  </span>
                   <span>作成: {formatDate(memo.created_at)}</span>
-                  {memo.updated_at && memo.updated_at !== memo.created_at && (
-                    <span>更新: {formatDate(memo.updated_at)}</span>
-                  )}
+                  <span>更新: {(memo.updated_at && memo.updated_at !== memo.created_at) ? formatDate(memo.updated_at) : '-'}</span>
                 </div>
+                <hr style={{ border: 'none', borderTop: `1px solid ${colors.cardBorder}`, margin: '6px 0' }} />
                 <p style={{
                   margin: 0, fontSize: 13, color: colors.bodyText,
                   overflow: 'hidden', display: '-webkit-box',
-                  // 画像がある場合は2行、ない場合は3行でテキストを省略
-                  WebkitLineClamp: memo.image_url ? 2 : 3, WebkitBoxOrient: 'vertical',
+                  // 画像がある場合は3行、ない場合は4行でテキストを省略
+                  WebkitLineClamp: memo.image_url ? 3 : 4, WebkitBoxOrient: 'vertical',
                   whiteSpace: 'pre-wrap', lineHeight: 1.6,
                 }}>
                   {memo.content}

@@ -26,13 +26,11 @@ export function Modal({ memo, onClose, colors }: { memo: Memo; onClose: () => vo
       >
         <h2 style={{ margin: 0, color: colors.headerText, wordBreak: 'break-word', overflowWrap: 'break-word' }}>{memo.title}</h2>
         <div style={{ fontSize: 12, color: colors.dateText, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {memo.author && (
-            <span style={{ color: colors.btnPrimary, fontWeight: 600 }}>👤 {memo.author}</span>
-          )}
+          <span style={{ color: memo.author ? colors.btnPrimary : colors.dateText, fontWeight: memo.author ? 600 : 400 }}>
+            👤 {memo.author || '-'}
+          </span>
           <span>作成: {formatDate(memo.created_at)}</span>
-          {memo.updated_at && memo.updated_at !== memo.created_at && (
-            <span>更新: {formatDate(memo.updated_at)}</span>
-          )}
+          <span>更新: {(memo.updated_at && memo.updated_at !== memo.created_at) ? formatDate(memo.updated_at) : '-'}</span>
         </div>
         <div style={{ overflowY: 'auto', whiteSpace: 'pre-wrap', overflowWrap: 'break-word', lineHeight: 1.8, color: colors.bodyText }}>
           {memo.content}
