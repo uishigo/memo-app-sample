@@ -1,10 +1,11 @@
-
-// 社内開発環境限定の対処
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+if (process.env.NODE_ENV !== 'production') {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
 
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const app = express();
@@ -18,8 +19,23 @@ const upload = multer({
   },
 });
 
-app.use(cors());
+const allowedOrigin = process.env.ALLOWED_ORIGIN || 'http://localhost:5173';
+app.use(cors({ origin: allowedOrigin }));
 app.use(express.json());
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+const uploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/', limiter);
 
 // Supabase クライアントの初期化
 const { createClient } = require('@supabase/supabase-js');
@@ -50,7 +66,7 @@ async function deleteStorageFile(imageUrl) {
 }
 
 // 画像アップロード
-app.post('/api/upload', upload.single('image'), async (req, res) => {
+app.post('/api/upload', uploadLimiter, upload.single('image'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file provided' });
   const ext = (req.file.originalname.split('.').pop() || 'jpg').toLowerCase();
   const fileName = `${Date.now()}.${ext}`;
@@ -75,9 +91,15 @@ app.get('/api/memos', async (req, res) => {
 // メモの作成
 app.post('/api/memos', async (req, res) => {
   const { title, content, image_url } = req.body;
+  if (!title || typeof title !== 'string' || title.trim().length === 0) {
+    return res.status(400).json({ error: 'タイトルは必須です' });
+  }
+  if (title.length > 50) return res.status(400).json({ error: 'タイトルは50文字以内です' });
+  if (content && content.length > 500) return res.status(400).json({ error: '内容は500文字以内です' });
+  if (image_url && typeof image_url !== 'string') return res.status(400).json({ error: '無効な画像URLです' });
   const { data, error } = await supabase
     .from('memos')
-    .insert([{ title, content, image_url: image_url || null }])
+    .insert([{ title: title.trim(), content: content ?? '', image_url: image_url || null }])
     .select();
   if (error) return res.status(500).json({ error: error.message });
   res.status(201).json(data[0]);
@@ -87,6 +109,12 @@ app.post('/api/memos', async (req, res) => {
 app.put('/api/memos/:id', async (req, res) => {
   const { id } = req.params;
   const { title, content, image_url } = req.body;
+  if (!title || typeof title !== 'string' || title.trim().length === 0) {
+    return res.status(400).json({ error: 'タイトルは必須です' });
+  }
+  if (title.length > 50) return res.status(400).json({ error: 'タイトルは50文字以内です' });
+  if (content && content.length > 500) return res.status(400).json({ error: '内容は500文字以内です' });
+  if (image_url && typeof image_url !== 'string') return res.status(400).json({ error: '無効な画像URLです' });
 
   const { data: existing } = await supabase
     .from('memos').select('image_url').eq('id', id).single();
