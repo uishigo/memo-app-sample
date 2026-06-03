@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Search, Pencil, Trash2, Plus, Check, X, ImagePlus } from 'lucide-react';
+import { Search, Pencil, Trash2, Plus, Check, X, ImagePlus, User } from 'lucide-react';
 import { themes, themeList, getInputStyle, type ThemeName } from './styles';
 import { formatDate, type Memo } from './types';
 import { Modal } from './components/Modal';
@@ -16,6 +16,9 @@ function App() {
   const [theme, setTheme] = useState<ThemeName>(
     () => (localStorage.getItem('memo-theme') as ThemeName) || 'green'
   );
+  const [username, setUsername] = useState(
+    () => localStorage.getItem('memo-username') || ''
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const colors = themes[theme];
@@ -25,6 +28,12 @@ function App() {
   const handleThemeChange = (t: ThemeName) => {
     setTheme(t);
     localStorage.setItem('memo-theme', t);
+  };
+
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.slice(0, 20);
+    setUsername(val);
+    localStorage.setItem('memo-username', val);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,9 +69,9 @@ function App() {
     }
 
     if (editingId) {
-      await updateMemo(editingId, title, content, image_url);
+      await updateMemo(editingId, title, content, image_url, username || null);
     } else {
-      await addMemo(title, content, image_url);
+      await addMemo(title, content, image_url, username || null);
     }
     resetForm();
   };
@@ -111,7 +120,25 @@ function App() {
           ))}
         </div>
       </div>
-      <p style={{ color: colors.dateText, marginBottom: 28, marginTop: 4, fontSize: 13 }}>あなたのメモを管理しましょう</p>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 28, marginTop: 4 }}>
+        <p style={{ color: colors.dateText, margin: 0, fontSize: 13 }}>あなたのメモを管理しましょう</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <User size={14} color={colors.dateText} />
+          <span style={{ fontSize: 13, color: colors.dateText }}>名前:</span>
+          <input
+            placeholder="未設定"
+            value={username}
+            onChange={handleUsernameChange}
+            maxLength={20}
+            style={{
+              padding: '4px 10px', fontSize: 13,
+              border: `1px solid ${colors.cardBorder}`,
+              borderRadius: 6, background: colors.cardBg,
+              color: colors.bodyText, outline: 'none', width: 130,
+            }}
+          />
+        </div>
+      </div>
 
       <div style={{
         background: colors.cardBg, border: `1px solid ${colors.cardBorder}`,
@@ -253,6 +280,9 @@ function App() {
                   {memo.title}
                 </h3>
                 <div style={{ fontSize: 11, color: colors.dateText, marginBottom: 8, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {memo.author && (
+                    <span style={{ color: colors.btnPrimary, fontWeight: 600 }}>👤 {memo.author}</span>
+                  )}
                   <span>作成: {formatDate(memo.created_at)}</span>
                   {memo.updated_at && memo.updated_at !== memo.created_at && (
                     <span>更新: {formatDate(memo.updated_at)}</span>

@@ -17,13 +17,13 @@ export function useMemos() {
     axios.get<Memo[]>(`${API}/memos`).then(res => setMemos(res.data));
   }, []);
 
-  const addMemo = async (title: string, content: string, image_url: string | null) => {
-    await axios.post(`${API}/memos`, { title, content, image_url });
+  const addMemo = async (title: string, content: string, image_url: string | null, author: string | null) => {
+    await axios.post(`${API}/memos`, { title, content, image_url, author });
     fetchMemos();
   };
 
-  const updateMemo = async (id: number, title: string, content: string, image_url: string | null) => {
-    await axios.put(`${API}/memos/${id}`, { title, content, image_url });
+  const updateMemo = async (id: number, title: string, content: string, image_url: string | null, author: string | null) => {
+    await axios.put(`${API}/memos/${id}`, { title, content, image_url, author });
     fetchMemos();
   };
 

@@ -90,16 +90,18 @@ app.get('/api/memos', async (req, res) => {
 
 // メモの作成
 app.post('/api/memos', async (req, res) => {
-  const { title, content, image_url } = req.body;
+  const { title, content, image_url, author } = req.body;
   if (!title || typeof title !== 'string' || title.trim().length === 0) {
     return res.status(400).json({ error: 'タイトルは必須です' });
   }
   if (title.length > 50) return res.status(400).json({ error: 'タイトルは50文字以内です' });
   if (content && content.length > 500) return res.status(400).json({ error: '内容は500文字以内です' });
   if (image_url && typeof image_url !== 'string') return res.status(400).json({ error: '無効な画像URLです' });
+  if (author && (typeof author !== 'string' || author.length > 20)) return res.status(400).json({ error: '名前は20文字以内です' });
+  const authorValue = author ? author.trim() || null : null;
   const { data, error } = await supabase
     .from('memos')
-    .insert([{ title: title.trim(), content: content ?? '', image_url: image_url || null }])
+    .insert([{ title: title.trim(), content: content ?? '', image_url: image_url || null, author: authorValue }])
     .select();
   if (error) return res.status(500).json({ error: error.message });
   res.status(201).json(data[0]);
@@ -108,25 +110,30 @@ app.post('/api/memos', async (req, res) => {
 // メモの更新
 app.put('/api/memos/:id', async (req, res) => {
   const { id } = req.params;
-  const { title, content, image_url } = req.body;
+  const { title, content, image_url, author } = req.body;
   if (!title || typeof title !== 'string' || title.trim().length === 0) {
     return res.status(400).json({ error: 'タイトルは必須です' });
   }
   if (title.length > 50) return res.status(400).json({ error: 'タイトルは50文字以内です' });
   if (content && content.length > 500) return res.status(400).json({ error: '内容は500文字以内です' });
   if (image_url && typeof image_url !== 'string') return res.status(400).json({ error: '無効な画像URLです' });
+  if (author && (typeof author !== 'string' || author.length > 20)) return res.status(400).json({ error: '名前は20文字以内です' });
+  const authorValue = author ? author.trim() || null : null;
 
   const { data: existing } = await supabase
-    .from('memos').select('image_url').eq('id', id).single();
+    .from('memos').select('image_url, author').eq('id', id).single();
 
   // 画像URLが変わった場合（差し替えまたは削除）のみ古いファイルをStorageから除去
   if (existing?.image_url && existing.image_url !== image_url) {
     await deleteStorageFile(existing.image_url);
   }
 
+  // 現在のユーザー名が空の場合は既存のauthorを引き継ぐ
+  const updatedAuthor = authorValue ?? existing?.author ?? null;
+
   const { data, error } = await supabase
     .from('memos')
-    .update({ title, content, image_url: image_url ?? null, updated_at: new Date().toISOString() })
+    .update({ title, content, image_url: image_url ?? null, author: updatedAuthor, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select();
   if (error) return res.status(500).json({ error: error.message });
