@@ -24,7 +24,11 @@ export function Modal({ memo, onClose, colors }: { memo: Memo; onClose: () => vo
           boxShadow: colors.modalShadow,
         }}
       >
-        <h2 style={{ margin: 0, color: colors.headerText, wordBreak: 'break-word', overflowWrap: 'break-word' }}>{memo.title}</h2>
+        <h2 style={{
+          margin: 0, color: colors.headerText, wordBreak: 'break-word', overflowWrap: 'break-word',
+          background: colors.pageBg, borderRadius: 8, padding: '6px 12px',
+        }}>{memo.title}</h2>
+        <hr style={{ border: 'none', borderTop: `1px solid ${colors.cardBorder}`, margin: 0 }} />
         <div style={{ fontSize: 12, color: colors.dateText, display: 'flex', flexDirection: 'column', gap: 2 }}>
           <span style={{ color: memo.author ? colors.btnPrimary : colors.dateText, fontWeight: memo.author ? 600 : 400 }}>
             👤 {memo.author || '-'}
