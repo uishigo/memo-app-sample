@@ -2,6 +2,7 @@ import { Check, X, Plus, ImagePlus } from 'lucide-react';
 import type { RefObject } from 'react';
 import { getInputStyle, type ThemeColors } from '../styles';
 
+// MemoForm に渡すプロパティ。フォームの値・ref・各操作のコールバックを含む
 interface Props {
   title: string;
   content: string;
@@ -17,6 +18,7 @@ interface Props {
   onCancel: () => void;
 }
 
+// メモの新規追加・編集に使うフォームカード。editingId が null のとき新規追加モード
 export function MemoForm({
   title, content, imagePreview, editingId, fileInputRef, colors,
   onTitleChange, onContentChange, onImageChange, onImageRemove, onSubmit, onCancel,
@@ -37,6 +39,7 @@ export function MemoForm({
           maxLength={50}
           style={{ ...inputStyle, marginBottom: 0 }}
         />
+        {/* 残り文字数: 90%超で橙、上限到達で赤 */}
         <span style={{
           position: 'absolute', right: 10, bottom: 8, fontSize: 11,
           color: title.length >= 45 ? (title.length >= 50 ? '#e53e3e' : '#d97706') : colors.dateText,
@@ -62,6 +65,7 @@ export function MemoForm({
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
+        {/* label でラップすることで、クリック時に hidden の input[file] を直接起動できる */}
         <label style={{
           display: 'inline-flex', alignItems: 'center', gap: 6,
           padding: '6px 14px', borderRadius: 8,

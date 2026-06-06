@@ -1,12 +1,14 @@
 import { LayoutGrid, List } from 'lucide-react';
 import type { ThemeColors } from '../styles';
 
+// グリッド表示とリスト表示を切り替えるトグルボタン
 interface Props {
   viewMode: 'grid' | 'list';
   colors: ThemeColors;
   onChange: (mode: 'grid' | 'list') => void;
 }
 
+// viewMode を受け取り、グリッド/リスト切替ボタンを描画する
 export function ViewToggle({ viewMode, colors, onChange }: Props) {
   return (
     <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>

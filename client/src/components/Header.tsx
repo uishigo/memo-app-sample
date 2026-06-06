@@ -1,6 +1,7 @@
 import { User } from 'lucide-react';
 import { themes, themeList, type ThemeColors, type ThemeName } from '../styles';
 
+// ページ上部のヘッダー。タイトル表示・テーマ切替ボタン・ユーザー名入力を含む
 interface Props {
   theme: ThemeName;
   colors: ThemeColors;
@@ -10,6 +11,7 @@ interface Props {
   onUsernameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
+// テーマ・ユーザー名・絵文字を受け取り、ヘッダー全体を描画する
 export function Header({ theme, colors, username, activeEmoji, onThemeChange, onUsernameChange }: Props) {
   return (
     <>

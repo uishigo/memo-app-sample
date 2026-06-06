@@ -2,6 +2,7 @@ import { Search, Pencil, Trash2 } from 'lucide-react';
 import type { ThemeColors } from '../styles';
 import { formatDate, type Memo } from '../types';
 
+// MemoCard に渡すプロパティ。表示モード・カラー・各アクションのコールバックを含む
 interface Props {
   memo: Memo;
   viewMode: 'grid' | 'list';
@@ -11,6 +12,8 @@ interface Props {
   onDelete: () => void;
 }
 
+// 詳細・編集・削除の3ボタンをまとめた内部コンポーネント。
+// vertical=true のときリスト表示用に縦並び・固定幅、false のときグリッド表示用に横並び・均等幅になる
 function ActionButtons({ colors, onDetail, onEdit, onDelete, vertical = false }: {
   colors: ThemeColors;
   onDetail: () => void;
@@ -36,6 +39,7 @@ function ActionButtons({ colors, onDetail, onEdit, onDelete, vertical = false }:
   );
 }
 
+// viewMode に応じてグリッドカードまたはリスト行として1件のメモを表示する
 export function MemoCard({ memo, viewMode, colors, onDetail, onEdit, onDelete }: Props) {
   if (viewMode === 'grid') {
     return (
@@ -62,6 +66,7 @@ export function MemoCard({ memo, viewMode, colors, onDetail, onEdit, onDelete }:
               <span>更新: {(memo.updated_at && memo.updated_at !== memo.created_at) ? formatDate(memo.updated_at) : '-'}</span>
             </div>
             <hr style={{ border: 'none', borderTop: `1px solid ${colors.cardBorder}`, margin: '6px 0' }} />
+            {/* 画像がある場合は本文行数を1行削減して画像スペースを確保する */}
             <p style={{
               margin: 0, fontSize: 13, color: colors.bodyText, overflow: 'hidden',
               display: '-webkit-box', WebkitLineClamp: memo.image_url ? 3 : 4, WebkitBoxOrient: 'vertical',
@@ -79,6 +84,7 @@ export function MemoCard({ memo, viewMode, colors, onDetail, onEdit, onDelete }:
     );
   }
 
+  // リスト表示: [メタ情報 | タイトル+本文 | 画像(任意) | ボタン] の4列構成
   return (
     <div style={{
       border: `1px solid ${colors.cardBorder}`, borderRadius: 12, padding: '12px 16px',
@@ -110,6 +116,7 @@ export function MemoCard({ memo, viewMode, colors, onDetail, onEdit, onDelete }:
             {memo.title}
           </h3>
           <hr style={{ border: 'none', borderTop: `1px solid ${colors.cardBorder}`, margin: '0 0 4px' }} />
+          {/* WebkitLineClamp で複数行テキストを省略表示する (非標準だが主要ブラウザ対応済み) */}
           <p style={{
             flex: 1, margin: 0, fontSize: 12, color: colors.bodyText,
             overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',

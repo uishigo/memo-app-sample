@@ -1,26 +1,28 @@
 import type React from 'react';
 
+// アプリ全体で使う色トークンの定義。テーマごとにこの形でカラーセットを用意する
 export type ThemeColors = {
-  pageBg: string;
-  cardBg: string;
-  cardBorder: string;
-  inputBorder: string;
-  btnPrimary: string;
-  btnSecondary: string;
-  btnSecondaryText: string;
-  btnDanger: string;
+  pageBg: string;       // ページ背景
+  cardBg: string;       // カード背景
+  cardBorder: string;   // カード・入力欄の枠線
+  inputBorder: string;  // 入力欄の枠線（cardBorder より少し濃い）
+  btnPrimary: string;   // 主要ボタン背景
+  btnSecondary: string;         // サブボタン背景
+  btnSecondaryText: string;     // サブボタン文字色
+  btnDanger: string;    // 削除系ボタン背景
   btnDangerText: string;
-  headerText: string;
-  dateText: string;
-  bodyText: string;
-  modalOverlay: string;
+  headerText: string;   // 見出し文字色
+  dateText: string;     // 日付・補足テキスト色
+  bodyText: string;     // 本文色
+  modalOverlay: string; // モーダル背景のオーバーレイ色
   modalBg: string;
-  shadow: string;
+  shadow: string;       // カードの box-shadow
   modalShadow: string;
 };
 
 export type ThemeName = 'green' | 'blue' | 'red' | 'yellow' | 'mono';
 
+// ThemeName をキーにした完全なカラーセット。新テーマを追加する場合はここに追記する
 export const themes: Record<ThemeName, ThemeColors> = {
   green: {
     pageBg: '#edf7f1', cardBg: '#f7fdf9', cardBorder: '#b2ddc0',
@@ -74,6 +76,7 @@ export const themes: Record<ThemeName, ThemeColors> = {
   },
 };
 
+// テーマ選択UIに使うメタデータ。配列の順番がボタンの表示順になる
 export const themeList: { key: ThemeName; label: string; emoji: string }[] = [
   { key: 'green',  label: 'グリーン',   emoji: '🌿' },
   { key: 'blue',   label: 'ブルー',     emoji: '💧' },
@@ -82,6 +85,7 @@ export const themeList: { key: ThemeName; label: string; emoji: string }[] = [
   { key: 'mono',   label: 'モノトーン', emoji: '🖤' },
 ];
 
+// テキスト入力・テキストエリアに共通で適用するスタイルを生成する
 export function getInputStyle(c: ThemeColors): React.CSSProperties {
   return {
     display: 'block', width: '100%', marginBottom: 10,

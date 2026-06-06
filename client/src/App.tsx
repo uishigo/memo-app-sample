@@ -9,6 +9,7 @@ import { MemoForm } from './components/MemoForm';
 import { ViewToggle } from './components/ViewToggle';
 import { MemoCard } from './components/MemoCard';
 
+// アプリのルートコンポーネント。全 state と各コンポーネントへの prop 受け渡しを担う
 function App() {
   const { memos, addMemo, updateMemo, deleteMemo, uploadImage } = useMemos();
   const [theme, setTheme] = useState<ThemeName>(

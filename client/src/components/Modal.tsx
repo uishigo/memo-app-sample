@@ -3,6 +3,7 @@ import type { ThemeColors } from '../styles';
 import type { Memo } from '../types';
 import { formatDate } from '../types';
 
+// メモの全文・画像を表示するモーダル。オーバーレイクリックでも閉じられる
 export function Modal({ memo, onClose, colors }: { memo: Memo; onClose: () => void; colors: ThemeColors }) {
   return (
     <div
@@ -12,7 +13,7 @@ export function Modal({ memo, onClose, colors }: { memo: Memo; onClose: () => vo
         display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
       }}
     >
-      {/* stopPropagation でオーバーレイのonCloseへイベントが伝播するのを防ぐ */}
+      {/* オーバーレイクリックで閉じる処理が内側のクリックで発火しないよう伝播を止める */}
       <div
         onClick={e => e.stopPropagation()}
         style={{
