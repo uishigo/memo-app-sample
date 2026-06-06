@@ -98,7 +98,7 @@ function App() {
     <div style={{ minHeight: '100vh', background: colors.pageBg, padding: '40px 24px', fontFamily: 'sans-serif' }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 8 }}>
         <h1 style={{ color: colors.headerText, margin: 0, fontSize: 26, fontWeight: 700, letterSpacing: 1 }}>
-          {activeThemeItem.emoji} メモ帳
+          {activeThemeItem.emoji} みんなの掲示板
         </h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 11, color: colors.dateText, marginRight: 2 }}>テーマ</span>
@@ -124,7 +124,7 @@ function App() {
         </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 28, marginTop: 4 }}>
-        <p style={{ color: colors.dateText, margin: 0, fontSize: 13 }}>あなたのメモを管理しましょう</p>
+        <p style={{ color: colors.dateText, margin: 0, fontSize: 13 }}>誰でも自由に投稿・編集できる掲示板です</p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <User size={14} color={colors.dateText} />
           <span style={{ fontSize: 13, color: colors.dateText }}>名前:</span>
