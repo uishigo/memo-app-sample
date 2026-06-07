@@ -112,6 +112,7 @@ export function MemoCard({ memo, viewMode, colors, onDetail, onEdit, onDelete }:
             margin: '0 0 4px', fontSize: 17, fontWeight: 700, color: colors.headerText,
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
             background: colors.pageBg, borderRadius: 6, padding: '2px 8px',
+            textAlign: 'left',
           }}>
             {memo.title}
           </h3>
@@ -120,7 +121,7 @@ export function MemoCard({ memo, viewMode, colors, onDetail, onEdit, onDelete }:
           <p style={{
             flex: 1, margin: 0, fontSize: 12, color: colors.bodyText,
             overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
-            whiteSpace: 'pre-wrap', lineHeight: 1.6,
+            whiteSpace: 'pre-wrap', lineHeight: 1.6, textAlign: 'left',
           }}>
             {memo.content}
           </p>
