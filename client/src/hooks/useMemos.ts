@@ -9,6 +9,7 @@ const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api';
 // 各ミューテーション後は fetchMemos で一覧を再取得してローカル状態を同期する。
 export function useMemos() {
   const [memos, setMemos] = useState<Memo[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // ミューテーション後の再取得用。useEffect の依存配列には含めないため関数として切り出す
   const fetchMemos = async () => {
@@ -18,7 +19,10 @@ export function useMemos() {
 
   // 初回マウント時のみ取得。fetchMemos を deps に入れると無限ループになるため直接記述
   useEffect(() => {
-    axios.get<Memo[]>(`${API}/memos`).then(res => setMemos(res.data));
+    axios.get<Memo[]>(`${API}/memos`).then(res => {
+      setMemos(res.data);
+      setLoading(false);
+    });
   }, []);
 
   const addMemo = async (title: string, content: string, image_url: string | null, author: string | null) => {
@@ -45,5 +49,5 @@ export function useMemos() {
     return res.data.url;
   };
 
-  return { memos, addMemo, updateMemo, deleteMemo, uploadImage };
+  return { memos, loading, addMemo, updateMemo, deleteMemo, uploadImage };
 }
