@@ -4,6 +4,7 @@ import type { Memo } from './types';
 import { useMemos } from './hooks/useMemos';
 import { useForm } from './hooks/useForm';
 import { Modal } from './components/Modal';
+import { ConfirmUpdateDialog } from './components/ConfirmUpdateDialog';
 import { Header } from './components/Header';
 import { MemoForm } from './components/MemoForm';
 import { ViewToggle } from './components/ViewToggle';
@@ -97,6 +98,14 @@ function App() {
         </div>
       )}
       {detailMemo && <Modal memo={detailMemo} onClose={() => setDetailMemo(null)} colors={colors} />}
+      {form.confirmDialog && (
+        <ConfirmUpdateDialog
+          diffs={form.confirmDialog.diffs}
+          colors={colors}
+          onConfirm={form.confirmUpdate}
+          onCancel={form.cancelConfirm}
+        />
+      )}
     </div>
   );
 }
