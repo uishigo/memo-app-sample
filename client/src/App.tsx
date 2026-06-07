@@ -90,7 +90,7 @@ function App() {
               viewMode={viewMode}
               colors={colors}
               onDetail={() => setDetailMemo(memo)}
-              onEdit={() => form.startEdit(memo)}
+              onEdit={() => { form.startEdit(memo); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
               onDelete={() => handleDelete(memo.id)}
             />
           ))}
